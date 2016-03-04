@@ -2,7 +2,7 @@ package game
 
 sealed trait Value
 {
-  def value: String
+  def value : String
   override def toString = value
 }
 
@@ -19,7 +19,7 @@ case class UnknownValue(value: String) extends Value
 
 sealed trait Color
 {
-  def color: String
+  def color : String
   override def toString = color
 }
 

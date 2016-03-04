@@ -1,10 +1,14 @@
 package player
 
-import game.Card
+import game.{Color, Card}
 
 abstract class Player {
-  val name: String
-  val cards: List[Card]
+  protected val name : String
+  protected var cards : List[Card]
 
+  def newHand(cards_ : List[Card]) = cards = cards_
+  def bet(currentBet : (Int, Color)) : (Int, Color)
   def play() : Card
+
+  override def toString = name
 }

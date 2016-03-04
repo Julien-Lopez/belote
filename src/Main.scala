@@ -1,12 +1,7 @@
-import game.{HEART, JACK, Card}
+import game.Board
+import player.Human
 
 object Main {
-  def main(args: Array[String]) = {
-    val card = new Card(JACK, HEART)
-    (card.getValue, card.getColor) match {
-      case (JACK, HEART) => Console.println("ho!")
-      case _ => ()
-    }
-    Console.println(card)
-  }
+  def main(args: Array[String]) = Board.game(new Human("Jack"), new Human("Bob"), new Human("Steve"),
+    new Human("Michael"))
 }
