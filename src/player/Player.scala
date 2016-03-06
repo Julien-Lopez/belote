@@ -2,7 +2,7 @@ package player
 
 import game.{Color, Card}
 
-abstract class Player {
+trait Player {
   protected val name : String
   protected var cards : List[Card]
 

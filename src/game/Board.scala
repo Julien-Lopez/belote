@@ -1,14 +1,16 @@
 package game
 
+import interface.ConsoleInterface
 import player.Player
 
+import scala.collection.mutable
 import scala.util.Random
 
 object Board {
   /**
     * The deck of cards.
     */
-  private var cards = List(new Card(SEVEN, DIAMOND), new Card(EIGHT, DIAMOND), new Card(NINE, DIAMOND),
+  private var cards = mutable.ListBuffer(new Card(SEVEN, DIAMOND), new Card(EIGHT, DIAMOND), new Card(NINE, DIAMOND),
     new Card(TEN, DIAMOND), new Card(JACK, DIAMOND), new Card(QUEEN, DIAMOND), new Card(KING, DIAMOND),
     new Card(ACE, DIAMOND), new Card(SEVEN, HEART), new Card(EIGHT, HEART), new Card(NINE, HEART), new Card(TEN, HEART),
     new Card(JACK, HEART), new Card(QUEEN, HEART), new Card(KING, HEART), new Card(ACE, HEART), new Card(SEVEN, SPADE),
@@ -19,10 +21,11 @@ object Board {
     * The score to reach to win the game.
     */
   val minWinScore = 1000
+  val interface = ConsoleInterface
 
   def game(p1 : Player, p2 : Player, p3 : Player, p4 : Player) =
   {
-    var players = Iterator.continually(List(p4, p1, p2, p3)).flatten
+    var players = List(p4, p1, p2, p3)
     var score1, score2 = 0
     var bets : List[(Int, Color)] = List.empty
     var roundBet : (Int, Color) = null
@@ -30,15 +33,19 @@ object Board {
 
     while (score1 < minWinScore && score2 < minWinScore)
     {
-      players.next() // Next player is dealer
-      val firstPlayer = players
-      Random.shuffle(cards) // Shuffle every turn for now
-      for (i <- 1 to 4) players.next().newHand(cards.take(8)) // Deal the cards
+      players = players.tail ::: players.take(1) // Next player is dealer
+      cards = Random.shuffle(cards) // Shuffle every turn for now
+      for (player <- players) player.newHand(cards.take(8).toList) // Deal the cards
+      cards.remove(0, 8)
+      interface.dealing()
 
       // Betting phase
+      val currPlayer = Iterator.continually(players).flatten
       while (counter < 3)
       {
-        roundBet = players.next().bet(roundBet)
+        val p = currPlayer.next()
+        roundBet = p.bet(if (bets.nonEmpty) bets.head else null)
+        interface.betting(p, roundBet)
         if (roundBet == null)
           counter += 1
         else
@@ -46,20 +53,19 @@ object Board {
       }
       roundBet = bets.head
 
-      players = firstPlayer
       // Playing phase
       if (bets.nonEmpty)
       {
-        for (i <- 1 to 8)
+        for (move <- 1 to 8)
         {
-          for (j <- 1 to 4)
-            cards ::= players.next().play()
+          for (player <- players)
+          {
+            cards += player.play()
+            interface.playing(player, cards.head)
+          }
         }
-        val p = firstPlayer.next()
-        if (p == p1 || p == p3)
-          score1 += roundBet._1
-        else
-          score2 += roundBet._1
+        val p = players.head
+        if (p == p1 || p == p3) score1 += roundBet._1 else score2 += roundBet._1
       }
     }
     if (score1 > score2)
