@@ -15,7 +15,14 @@ class Human(name_ : String) extends Player {
     case "HEART" => HEART
     case "SPADE" => SPADE
     case "CLUB" => CLUB
+    case _ => null
   })
   }
-  override def play() = cards.head
+
+  override def play() =
+  {
+    Console.println(cards)
+    Console.println("Card to play:")
+    cards.head
+  }
 }

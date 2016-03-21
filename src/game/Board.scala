@@ -29,7 +29,6 @@ object Board {
     var score1, score2 = 0
     var bets : List[(Int, Color)] = List.empty
     var roundBet : (Int, Color) = null
-    var counter = 0
 
     while (score1 < minWinScore && score2 < minWinScore)
     {
@@ -41,12 +40,13 @@ object Board {
 
       // Betting phase
       val currPlayer = Iterator.continually(players).flatten
+      var counter = 0
       while (counter < 3)
       {
         val p = currPlayer.next()
         roundBet = p.bet(if (bets.nonEmpty) bets.head else null)
         interface.betting(p, roundBet)
-        if (roundBet == null)
+        if (roundBet._1 == 0)
           counter += 1
         else
           bets ::= roundBet
