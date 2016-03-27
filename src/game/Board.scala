@@ -1,16 +1,17 @@
 package game
 
+import game.color._
+import game.value._
 import interface.ConsoleInterface
 import player.Player
 
-import scala.collection.mutable
 import scala.util.Random
 
 object Board {
   /**
     * The deck of cards.
     */
-  private var cards = mutable.ListBuffer(new Card(SEVEN, DIAMOND), new Card(EIGHT, DIAMOND), new Card(NINE, DIAMOND),
+  private var cards = List(new Card(SEVEN, DIAMOND), new Card(EIGHT, DIAMOND), new Card(NINE, DIAMOND),
     new Card(TEN, DIAMOND), new Card(JACK, DIAMOND), new Card(QUEEN, DIAMOND), new Card(KING, DIAMOND),
     new Card(ACE, DIAMOND), new Card(SEVEN, HEART), new Card(EIGHT, HEART), new Card(NINE, HEART), new Card(TEN, HEART),
     new Card(JACK, HEART), new Card(QUEEN, HEART), new Card(KING, HEART), new Card(ACE, HEART), new Card(SEVEN, SPADE),
@@ -34,8 +35,11 @@ object Board {
     {
       players = players.tail ::: players.take(1) // Next player is dealer
       cards = Random.shuffle(cards) // Shuffle every turn for now
-      for (player <- players) player.newHand(cards.take(8).toList) // Deal the cards
-      cards.remove(0, 8)
+      for (player <- players)
+      {
+        player.newHand(cards.take(8))
+        cards = cards.drop(8)
+      }
       interface.dealing()
 
       // Betting phase
@@ -44,12 +48,16 @@ object Board {
       while (counter < 3)
       {
         val p = currPlayer.next()
+        interface.bets(p)
         roundBet = p.bet(if (bets.nonEmpty) bets.head else null)
         interface.betting(p, roundBet)
         if (roundBet._1 == 0)
           counter += 1
         else
+        {
+          counter = 0
           bets ::= roundBet
+        }
       }
       roundBet = bets.head
 
@@ -58,10 +66,12 @@ object Board {
       {
         for (move <- 1 to 8)
         {
-          for (player <- players)
+          for (p <- players)
           {
-            cards += player.play()
-            interface.playing(player, cards.head)
+            interface.plays(p)
+            val card = p.play()
+            cards = card :: cards
+            interface.playing(p, card)
           }
         }
         val p = players.head
