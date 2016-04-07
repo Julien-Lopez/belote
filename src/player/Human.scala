@@ -11,7 +11,7 @@ class Human(name_ : String) extends Player {
 
   override def play() =
   {
-    val card = cards(Board.interface.readCard())
+    val card = cards(Board.interface.readCard(cards.length))
     cards = cards.filterNot(c => c == card)
     card
   }

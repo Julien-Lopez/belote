@@ -11,13 +11,14 @@ object Board {
   /**
     * The deck of cards.
     */
-  private var cards = List(new Card(SEVEN, DIAMOND), new Card(EIGHT, DIAMOND), new Card(NINE, DIAMOND),
+  private val deck = List(new Card(SEVEN, DIAMOND), new Card(EIGHT, DIAMOND), new Card(NINE, DIAMOND),
     new Card(TEN, DIAMOND), new Card(JACK, DIAMOND), new Card(QUEEN, DIAMOND), new Card(KING, DIAMOND),
     new Card(ACE, DIAMOND), new Card(SEVEN, HEART), new Card(EIGHT, HEART), new Card(NINE, HEART), new Card(TEN, HEART),
     new Card(JACK, HEART), new Card(QUEEN, HEART), new Card(KING, HEART), new Card(ACE, HEART), new Card(SEVEN, SPADE),
     new Card(EIGHT, SPADE), new Card(NINE, SPADE), new Card(TEN, SPADE), new Card(JACK, SPADE), new Card(QUEEN, SPADE),
     new Card(KING, SPADE), new Card(ACE, SPADE), new Card(SEVEN, CLUB), new Card(EIGHT, CLUB), new Card(NINE, CLUB),
     new Card(TEN, CLUB), new Card(JACK, CLUB), new Card(QUEEN, CLUB), new Card(KING, CLUB), new Card(ACE, CLUB))
+  private var cards = deck
   /**
     * The score to reach to win the game.
     */
@@ -34,7 +35,7 @@ object Board {
     while (score1 < minWinScore && score2 < minWinScore)
     {
       players = players.tail ::: players.take(1) // Next player is dealer
-      cards = Random.shuffle(cards) // Shuffle every turn for now
+      cards = Random.shuffle(deck) // Shuffle every turn for now
       for (player <- players)
       {
         player.newHand(cards.take(8))
@@ -44,7 +45,7 @@ object Board {
 
       // Betting phase
       val currPlayer = Iterator.continually(players).flatten
-      var counter = 0
+      var counter = -1 // -1 because at the first iteration the four players can call
       while (counter < 3)
       {
         val p = currPlayer.next()
@@ -53,24 +54,32 @@ object Board {
         interface.betting(p, roundBet)
         if (roundBet._1 == 0)
           counter += 1
+        else if (roundBet._1 < 0)
+          interface.betError("Invalid bet: should be positive, was " + roundBet._1)
+        else if (roundBet._1 > 160)
+          interface.betError("Invalid bet: cannot exceed 160, was " + roundBet._1)
+        else if (roundBet._1 % 10 != 0)
+          interface.betError("Invalid bet: should be multiple of 10, was " + roundBet._1)
+        else if (bets.nonEmpty && roundBet._1 <= bets.head._1)
+          interface.betError("Invalid bet: should be greater than previous bet (" + bets.head._1 + "), was "
+            + roundBet._1)
         else
         {
           counter = 0
           bets ::= roundBet
         }
       }
-      roundBet = bets.head
 
       // Playing phase
       if (bets.nonEmpty)
       {
+        roundBet = bets.head
         for (move <- 1 to 8)
         {
           for (p <- players)
           {
             interface.plays(p)
             val card = p.play()
-            cards = card :: cards
             interface.playing(p, card)
           }
         }
@@ -79,9 +88,8 @@ object Board {
       }
     }
     if (score1 > score2)
-      Console.println(p1 + " and " + p3 + " win!")
+      interface.wins(p1, p3, score1, score2)
     else
-      Console.println(p2 + " and " + p4 + " win!")
-    Console.println("Final score: " + score1 + " / " + score2)
+      interface.wins(p2, p4, score1, score2)
   }
 }
