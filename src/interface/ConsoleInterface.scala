@@ -2,14 +2,13 @@ package interface
 
 import java.text.ParseException
 
-import game.Card
+import game.{Card, Team}
 import game.color._
 import player.Player
 
 import scala.io.StdIn._
 
 object ConsoleInterface extends GameInterface {
-  // Board management
   override def dealing() = Console.println("Dealing...")
   override def bets(p: Player) =
   {
@@ -25,25 +24,43 @@ object ConsoleInterface extends GameInterface {
     Console println "[" + p + "] Card to play:"
   }
   override def playing(p: Player, c: Card) = Console.println(p + " played " + c)
-  override def wins(w1: Player, w2: Player, score1: Int, score2: Int) =
-    Console.println(w1 + " and " + w2 + " win! Final score: " + score1 + " / " + score2)
+  override def endPlay(t1 : Team, t2 : Team) =
+  {
+    Console.println(t1 + ": " + t1.points)
+    Console.println(t2 + ": " + t2.points)
+  }
+  override def endRound(t1 : Team, t2 : Team) =
+  {
+    Console.println(t1 + ": " + t1.score)
+    Console.println(t2 + ": " + t2.score)
+  }
+  override def wins(winners : Team, losers : Team) =
+    Console.println(winners + " wins! Final score: " + winners.points + " / " + losers.points)
 
   override def readBet() =
-    try {
-      val (qty, color) = readf2("{0,number,integer} {1}")
-      (qty.asInstanceOf[Long].toInt, color.toString match {
-        case "DIAMOND" => DIAMOND
-        case "HEART" => HEART
-        case "SPADE" => SPADE
-        case "CLUB" => CLUB
-        case _ => null
-      })
+  {
+    val bet = readLine()
+    if (bet.equalsIgnoreCase("call"))
+      (0, null)
+    else if (bet.matches("[0-9]+ [A-Za-z]+")) {
+      val split = bet.split(" ")
+      split(1).toUpperCase match
+      {
+        case "DIAMOND" => (split(0).toInt, DIAMOND)
+        case "HEART" => (split(0).toInt, HEART)
+        case "SPADE" => (split(0).toInt, SPADE)
+        case "CLUB" => (split(0).toInt, CLUB)
+        case _ =>
+          Console.println("Invalid bet.")
+          readBet()
+      }
     }
-    catch
-    {
-      case e: ParseException => (0, null)
-      case e: Throwable => throw e
+    else {
+      Console.println("Invalid bet.")
+      readBet()
     }
+  }
+
   override def readCard(max: Int) =
     try
       {

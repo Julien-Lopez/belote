@@ -25,14 +25,46 @@ object Board {
   val minWinScore = 1000
   val interface = ConsoleInterface
 
+  var players : List[Player] = List.empty
+  var team1, team2 : Team = null
+  var bets : List[((Int, Color), Player)] = List.empty
+  var roundBet : ((Int, Color), Player) = null
+
+  private def validBet(bet : (Int, Color)) =
+  {
+    var res = false
+    if (bet._1 < 0)
+      interface.betError("Invalid bet: should be positive, was " + bet._1)
+    else if (bet._1 > 160)
+      interface.betError("Invalid bet: cannot exceed 160, was " + bet._1)
+    else if (bet._1 % 10 != 0)
+      interface.betError("Invalid bet: should be multiple of 10, was " + roundBet._1)
+    else if (bet._1 > 0 && bets.nonEmpty && bet._1 <= bets.head._1._1)
+      interface.betError("Invalid bet: should be greater than previous bet (" + bets.head._1 + "), was " + bet._1)
+    else
+      res = true
+    res
+  }
+
+  def cardScore(c: Card, trump: Color) = c.value match {
+    case SEVEN | EIGHT => 0
+    case NINE => if (c.color == trump) 14 else 0
+    case TEN => 10
+    case JACK => if (c.color == trump) 20 else 2
+    case QUEEN => 3
+    case KING => 4
+    case ACE => 11
+  }
+
   def game(p1 : Player, p2 : Player, p3 : Player, p4 : Player) =
   {
-    var players = List(p4, p1, p2, p3)
-    var score1, score2 = 0
-    var bets : List[(Int, Color)] = List.empty
-    var roundBet : (Int, Color) = null
+    players = List(p4, p1, p2, p3)
+    team1 = new Team(p1, p3)
+    team2 = new Team(p2, p4)
+    bets = List.empty
+    roundBet = null
 
-    while (score1 < minWinScore && score2 < minWinScore)
+    while (team1.score < minWinScore && team2.score < minWinScore)
     {
       players = players.tail ::: players.take(1) // Next player is dealer
       cards = Random.shuffle(deck) // Shuffle every turn for now
@@ -50,19 +82,13 @@ object Board {
       {
         val p = currPlayer.next()
         interface.bets(p)
-        roundBet = p.bet(if (bets.nonEmpty) bets.head else null)
-        interface.betting(p, roundBet)
-        if (roundBet._1 == 0)
+        do
+        {
+          roundBet = (p.bet(), p)
+        } while (!validBet(roundBet._1))
+        interface.betting(p, roundBet._1)
+        if (roundBet._1._1 == 0)
           counter += 1
-        else if (roundBet._1 < 0)
-          interface.betError("Invalid bet: should be positive, was " + roundBet._1)
-        else if (roundBet._1 > 160)
-          interface.betError("Invalid bet: cannot exceed 160, was " + roundBet._1)
-        else if (roundBet._1 % 10 != 0)
-          interface.betError("Invalid bet: should be multiple of 10, was " + roundBet._1)
-        else if (bets.nonEmpty && roundBet._1 <= bets.head._1)
-          interface.betError("Invalid bet: should be greater than previous bet (" + bets.head._1 + "), was "
-            + roundBet._1)
         else
         {
           counter = 0
@@ -74,22 +100,49 @@ object Board {
       if (bets.nonEmpty)
       {
         roundBet = bets.head
+        team1.points = 0
+        team2.points = 0
         for (move <- 1 to 8)
         {
-          for (p <- players)
-          {
+          var points = 0
+          var wCard : Card = null
+          var wScore = -1
+          var wPlayer : Player = null
+          for (p <- players) {
             interface.plays(p)
             val card = p.play()
+            val cScore = cardScore(card, roundBet._1._2)
             interface.playing(p, card)
+            points += cScore
+            /*
+             * Wins if:
+             * - No card before
+             * - Is trump and card before is not
+             * - Is same color and better card score
+             */
+            if (wCard == null || (wCard.color != roundBet._1._2 && card.color == roundBet._1._2)
+              || (wCard.color == card.color && cardScore(wCard, roundBet._1._2) < cardScore(card, roundBet._1._2)))
+            {
+              wCard = card
+              wScore = cScore
+              wPlayer = p
+            }
           }
+          val team = if (team1.belongs(wPlayer)) team1 else team2
+          team.points += points
+          interface.endPlay(team1, team2)
         }
-        val p = players.head
-        if (p == p1 || p == p3) score1 += roundBet._1 else score2 += roundBet._1
+        val (team, otherTeam) = if (team1.belongs(roundBet._2)) (team1, team2) else (team2, team1)
+        if (team.points >= roundBet._1._1)
+          team.score += roundBet._1._1
+        else
+          otherTeam.score += 160
+        interface.endRound(team1, team2)
       }
     }
-    if (score1 > score2)
-      interface.wins(p1, p3, score1, score2)
+    if (team1.score > team2.score)
+      interface.wins(team1, team2)
     else
-      interface.wins(p2, p4, score1, score2)
+      interface.wins(team2, team1)
   }
 }

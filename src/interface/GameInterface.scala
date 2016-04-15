@@ -1,6 +1,6 @@
 package interface
 
-import game.Card
+import game.{Card, Team}
 import game.color.Color
 import player.Player
 
@@ -11,7 +11,9 @@ trait GameInterface {
   def betError(msg: String)
   def plays(p: Player)
   def playing(p: Player, c: Card)
-  def wins(w1: Player, w2: Player, score1: Int, score2: Int)
+  def endPlay(t1: Team, t2: Team)
+  def endRound(t1: Team, t2: Team)
+  def wins(winners : Team, losers : Team)
 
   // For interactive (human) players
   def readBet() : (Int, Color)
