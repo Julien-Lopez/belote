@@ -11,6 +11,7 @@ trait GameInterface {
   def betError(msg: String)
   def plays(p: Player)
   def playing(p: Player, c: Card)
+  def moveError(c: Card)
   def endPlay(t1: Team, t2: Team)
   def endRound(t1: Team, t2: Team)
   def wins(winners : Team, losers : Team)

@@ -24,6 +24,7 @@ object ConsoleInterface extends GameInterface {
     Console println "[" + p + "] Card to play:"
   }
   override def playing(p: Player, c: Card) = Console.println(p + " played " + c)
+  override def moveError(c: Card) = Console.println("Invalid move: " + c)
   override def endPlay(t1 : Team, t2 : Team) =
   {
     Console.println(t1 + ": " + t1.points)

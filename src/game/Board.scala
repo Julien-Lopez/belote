@@ -56,7 +56,31 @@ object Board {
     case ACE => 11
   }
 
-  def game(p1 : Player, p2 : Player, p3 : Player, p4 : Player) =
+  /*
+   * - If first card is trump:
+   *   - Play higher than winning card if got any
+   *   - Else play a trump card if got any
+   * - If first card is not trump:
+   *   - Always play a card of the same color of the first card if goy any
+   *   - Else if opponent got winning card and is a trump:
+   *     - Play a higher trump card if got any
+   *     - Else play a trump card if got any
+   *   - Else if opponent got winning card and is not a trump, play a trump card if got any
+   */
+  def validMove(c : Card, p : Player, fCardColor : Color, trumpColor : Color, wCard : Card, pIsLosing : Boolean) =
+    if (fCardColor == null) true
+    else if (c.color != fCardColor && p.existCard(c => c.color == fCardColor)) false
+    else if (fCardColor == trumpColor && c.value < wCard.value && p.existCard(c => c.color == trumpColor && wCard.value < c.value)) false
+    else if (c.color == fCardColor) true
+    else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor
+      && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
+    else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor // TODO: Bug on <: 9 and Jack
+      && c.value < wCard.value && p.existCard(c => c.color == trumpColor && wCard.value < c.value)) false
+    else if (fCardColor != trumpColor && pIsLosing && wCard.color != trumpColor
+      && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
+    else true
+
+  def game(p1 : Player, p2 : Player, p3 : Player, p4 : Player)
   {
     players = List(p4, p1, p2, p3)
     team1 = new Team(p1, p3)
@@ -105,12 +129,20 @@ object Board {
         for (move <- 1 to 8)
         {
           var points = 0
-          var wCard : Card = null
+          var fCardColor : Color = null
+          var wCard: Card = null
           var wScore = -1
-          var wPlayer : Player = null
+          var wPlayer: Player = null
           for (p <- players) {
             interface.plays(p)
-            val card = p.play()
+            var card = p.play()
+            while (!validMove(card, p, fCardColor, roundBet._1._2, wCard, team1.belongs(wPlayer) ^ team1.belongs(p)))
+            {
+              interface.moveError(card)
+              p.take(card)
+              interface.plays(p)
+              card = p.play()
+            }
             val cScore = cardScore(card, roundBet._1._2)
             interface.playing(p, card)
             points += cScore
@@ -121,12 +153,13 @@ object Board {
              * - Is same color and better card score
              */
             if (wCard == null || (wCard.color != roundBet._1._2 && card.color == roundBet._1._2)
-              || (wCard.color == card.color && cardScore(wCard, roundBet._1._2) < cardScore(card, roundBet._1._2)))
+              || (wCard.color == card.color && wScore < cScore))
             {
               wCard = card
               wScore = cScore
               wPlayer = p
             }
+            if (fCardColor == null) fCardColor = card.color
           }
           val team = if (team1.belongs(wPlayer)) team1 else team2
           team.points += points
