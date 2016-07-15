@@ -1,7 +1,7 @@
 package interface
 
 import game.{Card, Team}
-import game.color.Color
+import game.Color
 import player.Player
 
 trait GameInterface {

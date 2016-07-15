@@ -1,7 +1,7 @@
 package player
 
 import game.{Board, Card}
-import game.color._
+import game.DIAMOND
 
 class AI(name_ : String) extends Player
 {

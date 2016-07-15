@@ -1,8 +1,6 @@
 package game
 
-import game.color._
-import game.value._
-import interface.ConsoleInterface
+import interface._
 import player.Player
 
 import scala.util.Random
@@ -23,12 +21,13 @@ object Board {
     * The score to reach to win the game.
     */
   val minWinScore = 1000
-  val interface = ConsoleInterface
+  val interface = new GraphicalInterface
+  interface.visible = true
 
   var players : List[Player] = List.empty
-  var team1, team2 : Team = null
+  var team1, team2 : Team = _
   var bets : List[((Int, Color), Player)] = List.empty
-  var roundBet : ((Int, Color), Player) = null
+  var roundBet : ((Int, Color), Player) = _
 
   private def validBet(bet : (Int, Color)) =
   {
