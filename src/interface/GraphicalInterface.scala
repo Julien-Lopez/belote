@@ -1,20 +1,31 @@
 package interface
 
 import java.text.ParseException
-
-import game._
-import player.Player
+import java.awt.Dimension
+import javax.swing.ImageIcon
 
 import scala.io.StdIn._
+import scala.swing._
+import game.{CLUB, Card, DIAMOND, HEART, SPADE, Team}
+import player.Player
 
-object ConsoleInterface extends GameInterface {
+class GraphicalInterface extends MainFrame with GameInterface {
+  title = "Belote"
+  preferredSize = new Dimension(742, 527)
+  val label = new Label {
+    icon = new ImageIcon("images/background.jpg")
+  }
+  contents = new BoxPanel(Orientation.Vertical) {
+    contents += label
+  }
+
   override def dealing() = Console.println("Dealing...")
   override def bets(p: Player) =
   {
     Console println "[" + p + "] " + p.printCards
     Console println "[" + p + "] Your bet:"
   }
-  override def betting(p: Player, bet: (Int, Color)) =
+  override def betting(p: Player, bet: (Int, game.Color)) =
     Console.println(p + (if (bet._1 != 0) " bets " + bet._1 + " at " + bet._2 else " calls"))
   override def betError(msg: String) = Console.println(msg)
   override def plays(p: Player)

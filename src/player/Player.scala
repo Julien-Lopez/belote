@@ -1,7 +1,7 @@
 package player
 
 import game.Card
-import game.color.Color
+import game.Color
 
 trait Player {
   val name : String
