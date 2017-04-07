@@ -2,14 +2,13 @@ package player
 
 import game._
 
-class Human(name_ : String) extends Player
+class Human(override val name: String) extends Player
 {
-  override val name = name_
-  override protected var cards : List[Card] = List.empty
+  override protected var cards: List[Card] = List.empty
 
-  override def bet() = Board.interface.readBet()
+  override def bet(): (Int, Color) = Board.interface.readBet()
 
-  override def play() =
+  override def play(): Card =
   {
     val card = cards(Board.interface.readCard(cards.length))
     cards = cards.filterNot(c => c == card)

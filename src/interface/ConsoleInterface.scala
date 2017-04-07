@@ -8,36 +8,36 @@ import player.Player
 import scala.io.StdIn._
 
 object ConsoleInterface extends GameInterface {
-  override def dealing() = Console.println("Dealing...")
-  override def bets(p: Player) =
+  override def dealing(): Unit = Console.println("Dealing...")
+  override def bets(p: Player): Unit =
   {
     Console println "[" + p + "] " + p.printCards
     Console println "[" + p + "] Your bet:"
   }
-  override def betting(p: Player, bet: (Int, Color)) =
+  override def betting(p: Player, bet: (Int, Color)): Unit =
     Console.println(p + (if (bet._1 != 0) " bets " + bet._1 + " at " + bet._2 else " calls"))
-  override def betError(msg: String) = Console.println(msg)
-  override def plays(p: Player)
+  override def betError(msg: String): Unit = Console.println(msg)
+  override def plays(p: Player): Unit =
   {
     Console println "[" + p + "] " + p.printCardsWithIndexes
     Console println "[" + p + "] Card to play:"
   }
-  override def playing(p: Player, c: Card) = Console.println(p + " played " + c)
-  override def moveError(c: Card) = Console.println("Invalid move: " + c)
-  override def endPlay(t1 : Team, t2 : Team) =
+  override def playing(p: Player, c: Card): Unit = Console.println(p + " played " + c)
+  override def moveError(c: Card): Unit = Console.println("Invalid move: " + c)
+  override def endPlay(t1: Team, t2: Team): Unit =
   {
     Console.println(t1 + ": " + t1.points)
     Console.println(t2 + ": " + t2.points)
   }
-  override def endRound(t1 : Team, t2 : Team) =
+  override def endRound(t1: Team, t2: Team): Unit =
   {
     Console.println(t1 + ": " + t1.score)
     Console.println(t2 + ": " + t2.score)
   }
-  override def wins(winners : Team, losers : Team) =
+  override def wins(winners: Team, losers: Team): Unit =
     Console.println(winners + " wins! Final score: " + winners.points + " / " + losers.points)
 
-  override def readBet() =
+  override def readBet(): (Int, Color) =
   {
     val bet = readLine()
     if (bet.equalsIgnoreCase("call"))
@@ -61,7 +61,7 @@ object ConsoleInterface extends GameInterface {
     }
   }
 
-  override def readCard(max: Int) : Int =
+  override def readCard(max: Int): Int =
     try
     {
       val res = readf1("{0,number,integer}").asInstanceOf[Long].toInt
@@ -71,7 +71,7 @@ object ConsoleInterface extends GameInterface {
     }
     catch
     {
-      case e: ParseException =>
+      case _: ParseException =>
         Console.println("Invalid card, please enter a number between 1 and " + max)
         readCard(max)
       case e: Throwable => throw e

@@ -24,12 +24,12 @@ object Board {
   val interface = new GraphicalInterface
   interface.visible = true
 
-  var players : List[Player] = List.empty
-  var team1, team2 : Team = _
-  var bets : List[((Int, Color), Player)] = List.empty
-  var roundBet : ((Int, Color), Player) = _
+  var players: List[Player] = List.empty
+  var team1, team2: Team = _
+  var bets: List[((Int, Color), Player)] = List.empty
+  var roundBet: ((Int, Color), Player) = _
 
-  private def validBet(bet : (Int, Color)) =
+  private def validBet(bet: (Int, Color)) =
   {
     var res = false
     if (bet._1 < 0)
@@ -45,7 +45,7 @@ object Board {
     res
   }
 
-  def cardScore(c: Card, trump: Color) = c.value match {
+  def cardScore(c: Card, trump: Color): Int = c.value match {
     case SEVEN | EIGHT => 0
     case NINE => if (c.color == trump) 14 else 0
     case TEN => 10
@@ -66,7 +66,7 @@ object Board {
    *     - Else play a trump card if got any
    *   - Else if opponent got winning card and is not a trump, play a trump card if got any
    */
-  def validMove(c : Card, p : Player, fCardColor : Color, trumpColor : Color, wCard : Card, pIsLosing : Boolean) =
+  def validMove(c: Card, p: Player, fCardColor: Color, trumpColor: Color, wCard: Card, pIsLosing: Boolean): Boolean =
     if (fCardColor == null) true
     else if (c.color != fCardColor && p.existCard(c => c.color == fCardColor)) false
     else if (fCardColor == trumpColor && c.value < wCard.value && p.existCard(c => c.color == trumpColor && wCard.value < c.value)) false
@@ -79,7 +79,7 @@ object Board {
       && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
     else true
 
-  def game(p1 : Player, p2 : Player, p3 : Player, p4 : Player)
+  def game(p1: Player, p2: Player, p3: Player, p4: Player)
   {
     players = List(p4, p1, p2, p3)
     team1 = new Team(p1, p3)
@@ -125,10 +125,10 @@ object Board {
         roundBet = bets.head
         team1.points = 0
         team2.points = 0
-        for (move <- 1 to 8)
+        for (_ <- 1 to 8)
         {
           var points = 0
-          var fCardColor : Color = null
+          var fCardColor: Color = null
           var wCard: Card = null
           var wScore = -1
           var wPlayer: Player = null

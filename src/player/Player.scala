@@ -4,22 +4,22 @@ import game.Card
 import game.Color
 
 trait Player {
-  val name : String
-  protected var cards : List[Card]
+  val name: String
+  protected var cards: List[Card]
 
   // TODO: These methods should not be accessible by anyone
-  def newHand(cards_ : List[Card]) = cards = cards_
-  def take(card : Card) = cards = card :: cards
-  def bet() : (Int, Color)
-  def play() : Card
-  def printCards = cards.mkString(", ")
-  def printCardsWithIndexes = printer(cards)
-  def existCard(p: Card => Boolean) = cards.exists(p)
+  def newHand(newCards: List[Card]): Unit = cards = newCards
+  def take(card: Card): Unit = cards = card :: cards
+  def bet(): (Int, Color)
+  def play(): Card
+  def printCards: String = cards.mkString(", ")
+  def printCardsWithIndexes: String = printer(cards)
+  def existCard(p: Card => Boolean): Boolean = cards.exists(p)
 
-  private def printer(cards : List[Card]) : String =
+  private def printer(cards: List[Card]): String =
   {
     var index = 0
-    def printer_(cards : List[Card]) : String =
+    def printer_(cards: List[Card]): String =
     {
       cards match
       {
@@ -30,5 +30,5 @@ trait Player {
     }
     printer_(cards)
   }
-  override def toString = name
+  override def toString: String = name
 }

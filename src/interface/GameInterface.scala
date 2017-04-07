@@ -14,9 +14,9 @@ trait GameInterface {
   def moveError(c: Card)
   def endPlay(t1: Team, t2: Team)
   def endRound(t1: Team, t2: Team)
-  def wins(winners : Team, losers : Team)
+  def wins(winners: Team, losers: Team)
 
   // For interactive (human) players
-  def readBet() : (Int, Color)
-  def readCard(max: Int) : Int
+  def readBet(): (Int, Color)
+  def readCard(max: Int): Int
 }
