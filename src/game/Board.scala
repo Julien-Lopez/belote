@@ -21,8 +21,7 @@ object Board {
     * The score to reach to win the game.
     */
   val minWinScore = 1000
-  val interface = new GraphicalInterface
-  interface.visible = true
+  val interface = ConsoleInterface
 
   var players: List[Player] = List.empty
   var team1, team2: Team = _
@@ -55,17 +54,6 @@ object Board {
     case ACE => 11
   }
 
-  /*
-   * - If first card is trump:
-   *   - Play higher than winning card if got any
-   *   - Else play a trump card if got any
-   * - If first card is not trump:
-   *   - Always play a card of the same color of the first card if goy any
-   *   - Else if opponent got winning card and is a trump:
-   *     - Play a higher trump card if got any
-   *     - Else play a trump card if got any
-   *   - Else if opponent got winning card and is not a trump, play a trump card if got any
-   */
   def validMove(c: Card, p: Player, fCardColor: Color, trumpColor: Color, wCard: Card, pIsLosing: Boolean): Boolean =
     if (fCardColor == null) true
     else if (c.color != fCardColor && p.existCard(c => c.color == fCardColor)) false
@@ -73,8 +61,9 @@ object Board {
     else if (c.color == fCardColor) true
     else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor
       && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
-    else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor // TODO: Bug on <: 9 and Jack
-      && c.value < wCard.value && p.existCard(c => c.color == trumpColor && wCard.value < c.value)) false
+    else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor
+      && c.value.trumpLowerThan(wCard.value) && p.existCard(c => c.color == trumpColor && wCard.value.trumpLowerThan
+    (c.value))) false
     else if (fCardColor != trumpColor && pIsLosing && wCard.color != trumpColor
       && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
     else true
