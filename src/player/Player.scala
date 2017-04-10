@@ -5,7 +5,7 @@ import game.Color
 
 trait Player {
   val name: String
-  protected var cards: List[Card] = List.empty
+  var cards: List[Card] = List.empty
 
   // TODO: These methods should not be accessible by anyone
   def newHand(newCards: List[Card]): Unit = cards = newCards

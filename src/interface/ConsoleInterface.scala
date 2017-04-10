@@ -35,7 +35,7 @@ object ConsoleInterface extends GameInterface {
     Console.println(t2 + ": " + t2.score)
   }
   override def wins(winners: Team, losers: Team): Unit =
-    Console.println(winners + " wins! Final score: " + winners.points + " / " + losers.points)
+    Console.println(winners + " wins! Final score: " + winners.score + " / " + losers.score)
 
   override def readBet(): (Int, Color) =
   {

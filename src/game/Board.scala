@@ -1,11 +1,12 @@
 package game
 
 import interface._
-import player.Player
+import player.{DummyAI, Player}
 
 import scala.util.Random
 
 object Board {
+  private var isRunning = false
   /**
     * The deck of cards.
     */
@@ -28,8 +29,15 @@ object Board {
   var team1, team2: Team = _
   var bets: List[((Int, Color), Player)] = List.empty
   var roundBet: ((Int, Color), Player) = _
+  var cardsPlayed: List[(Card, Player)] = List.empty
+  var roundPoints: Int = 0
+  var trickPlayers: List[Player] = List.empty
+  var trickFirstCardColor: Color = _
+  var trickWinningCard: Card = _
+  var trickWinningScore: Int = -1
+  var trickWinningPlayer: Player = _
 
-  private def validBet(bet: (Int, Color)) =
+  def validBet(bet: (Int, Color)): Boolean =
   {
     var res = false
     if (bet._1 < 0)
@@ -45,30 +53,34 @@ object Board {
     res
   }
 
-  def validMove(c: Card, p: Player, fCardColor: Color, trumpColor: Color, wCard: Card, pIsLosing: Boolean): Boolean =
-    if (fCardColor == null) true
-    else if (c.color != fCardColor && p.existCard(c => c.color == fCardColor)) false
-    else if (fCardColor == trumpColor && c < (wCard, trumpColor) && p.existCard(c => wCard < (c, trumpColor))) false
-    else if (c.color == fCardColor) true
-    else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor
+  def validMove(c: Card, p: Player): Boolean = {
+    val pIsLosing = team1.belongs(trickWinningPlayer) ^ team1.belongs(p)
+    val trumpColor = roundBet._1._2
+    if (trickFirstCardColor == null) true
+    else if (c.color != trickFirstCardColor && p.existCard(c => c.color == trickFirstCardColor)) false
+    else if (trickFirstCardColor == trumpColor && c < (trickWinningCard, trumpColor) && p.existCard(c => trickWinningCard < (c, trumpColor))) false
+    else if (c.color == trickFirstCardColor) true
+    else if (trickFirstCardColor != trumpColor && pIsLosing && trickWinningCard.color == trumpColor
       && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
-    else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor
-      && c < (wCard, trumpColor) && p.existCard(c => wCard < (c, trumpColor))) false
-    else if (fCardColor != trumpColor && pIsLosing && wCard.color != trumpColor
+    else if (trickFirstCardColor != trumpColor && pIsLosing && trickWinningCard.color == trumpColor
+      && c < (trickWinningCard, trumpColor) && p.existCard(c => trickWinningCard < (c, trumpColor))) false
+    else if (trickFirstCardColor != trumpColor && pIsLosing && trickWinningCard.color != trumpColor
       && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
     else true
+  }
 
-  def game(p1: Player, p2: Player, p3: Player, p4: Player)
+  private def game(p1: Player, p2: Player, p3: Player, p4: Player)
   {
     players = List(p4, p1, p2, p3)
     team1 = new Team(p1, p3)
     team2 = new Team(p2, p4)
-    bets = List.empty
-    roundBet = null
 
     while (team1.score < minWinScore && team2.score < minWinScore)
     {
+      bets = List.empty
+      roundBet = null
       players = players.tail ::: players.take(1) // Next player is dealer
+      trickPlayers = players
       cards = Random.shuffle(deck) // Shuffle every turn for now
       for (player <- players)
       {
@@ -104,43 +116,45 @@ object Board {
         roundBet = bets.head
         team1.points = 0
         team2.points = 0
-        for (_ <- 1 to 8)
+        for (round <- 1 to 8)
         {
-          var points = 0
-          var fCardColor: Color = null
-          var wCard: Card = null
-          var wScore = -1
-          var wPlayer: Player = null
-          for (p <- players) {
+          while (round > 1 && trickPlayers.head != trickWinningPlayer)
+            trickPlayers = trickPlayers.tail ::: trickPlayers.take(1)
+          roundPoints = 0
+          trickFirstCardColor = null
+          trickWinningCard = null
+          trickWinningScore = -1
+          trickWinningPlayer = null
+          for (p <- trickPlayers) {
             interface.plays(p)
             var card = p.play()
-            while (!validMove(card, p, fCardColor, roundBet._1._2, wCard, team1.belongs(wPlayer) ^ team1.belongs(p)))
+            while (!validMove(card, p))
             {
               interface.moveError(card)
-              p.take(card)
               interface.plays(p)
               card = p.play()
             }
+            p.cards = p.cards.filterNot(c => c == card)
             val cScore = card.score(roundBet._1._2)
             interface.playing(p, card)
-            points += cScore
+            roundPoints += cScore
             /*
              * Wins if:
              * - No card before
              * - Is trump and card before is not
              * - Is same color and better card score
              */
-            if (wCard == null || (wCard.color != roundBet._1._2 && card.color == roundBet._1._2)
-              || (wCard.color == card.color && wScore < cScore))
+            if (trickWinningCard == null || (trickWinningCard.color != roundBet._1._2 && card.color == roundBet._1._2)
+              || (trickWinningCard.color == card.color && trickWinningScore < cScore))
             {
-              wCard = card
-              wScore = cScore
-              wPlayer = p
+              trickWinningCard = card
+              trickWinningScore = cScore
+              trickWinningPlayer = p
             }
-            if (fCardColor == null) fCardColor = card.color
+            if (trickFirstCardColor == null) trickFirstCardColor = card.color
           }
-          val team = if (team1.belongs(wPlayer)) team1 else team2
-          team.points += points
+          val team = if (team1.belongs(trickWinningPlayer)) team1 else team2
+          team.points += roundPoints
           interface.endPlay(team1, team2)
         }
         val (team, otherTeam) = if (team1.belongs(roundBet._2)) (team1, team2) else (team2, team1)
@@ -155,5 +169,12 @@ object Board {
       interface.wins(team1, team2)
     else
       interface.wins(team2, team1)
+  }
+
+  def main(args: Array[String]): Unit = {
+    if (!isRunning) {
+      isRunning = true
+      Board.game(new DummyAI("Julien"), new DummyAI("Bob"), new DummyAI("Steve"), new DummyAI("Michael"))
+    }
   }
 }
