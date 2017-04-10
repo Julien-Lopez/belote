@@ -17,11 +17,12 @@ object Board {
     new Card(KING, SPADE), new Card(ACE, SPADE), new Card(SEVEN, CLUB), new Card(EIGHT, CLUB), new Card(NINE, CLUB),
     new Card(TEN, CLUB), new Card(JACK, CLUB), new Card(QUEEN, CLUB), new Card(KING, CLUB), new Card(ACE, CLUB))
   private var cards = deck
+  val interface = ConsoleInterface
+
   /**
     * The score to reach to win the game.
     */
   val minWinScore = 1000
-  val interface = ConsoleInterface
 
   var players: List[Player] = List.empty
   var team1, team2: Team = _
@@ -44,26 +45,15 @@ object Board {
     res
   }
 
-  def cardScore(c: Card, trump: Color): Int = c.value match {
-    case SEVEN | EIGHT => 0
-    case NINE => if (c.color == trump) 14 else 0
-    case TEN => 10
-    case JACK => if (c.color == trump) 20 else 2
-    case QUEEN => 3
-    case KING => 4
-    case ACE => 11
-  }
-
   def validMove(c: Card, p: Player, fCardColor: Color, trumpColor: Color, wCard: Card, pIsLosing: Boolean): Boolean =
     if (fCardColor == null) true
     else if (c.color != fCardColor && p.existCard(c => c.color == fCardColor)) false
-    else if (fCardColor == trumpColor && c.value < wCard.value && p.existCard(c => c.color == trumpColor && wCard.value < c.value)) false
+    else if (fCardColor == trumpColor && c < (wCard, trumpColor) && p.existCard(c => wCard < (c, trumpColor))) false
     else if (c.color == fCardColor) true
     else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor
       && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
     else if (fCardColor != trumpColor && pIsLosing && wCard.color == trumpColor
-      && c.value.trumpLowerThan(wCard.value) && p.existCard(c => c.color == trumpColor && wCard.value.trumpLowerThan
-    (c.value))) false
+      && c < (wCard, trumpColor) && p.existCard(c => wCard < (c, trumpColor))) false
     else if (fCardColor != trumpColor && pIsLosing && wCard.color != trumpColor
       && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
     else true
@@ -131,7 +121,7 @@ object Board {
               interface.plays(p)
               card = p.play()
             }
-            val cScore = cardScore(card, roundBet._1._2)
+            val cScore = card.score(roundBet._1._2)
             interface.playing(p, card)
             points += cScore
             /*

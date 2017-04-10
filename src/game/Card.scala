@@ -6,15 +6,6 @@ sealed trait Value
 
   override def toString: String = this.getClass.getSimpleName.replace("$", "")
 
-  def <(other: Value): Boolean = id < other.id
-
-  def trumpLowerThan(other: Value): Boolean = (this, other) match {
-    case (JACK, _) => false
-    case (NINE, x) => x == JACK
-    case (_, JACK) | (_, NINE) => true
-    case _ => id < other.id
-  }
-
   def toValue(s: String): Value = s match {
     case "SEVEN" => SEVEN
     case "EIGHT" => EIGHT
@@ -71,7 +62,19 @@ case object SPADE extends Color {}
 
 case object CLUB extends Color {}
 
-class Card(val value: Value, val color: Color)
-{
+class Card(val value: Value, val color: Color) {
+  def <(other: Card, trump: Color): Boolean =
+    color != trump && other.color == trump || (color == other.color && score(trump) < other.score(trump))
+
+  def score(trump: Color): Int = value match {
+    case SEVEN | EIGHT => 0
+    case NINE => if (color == trump) 14 else 0
+    case TEN => 10
+    case JACK => if (color == trump) 20 else 2
+    case QUEEN => 3
+    case KING => 4
+    case ACE => 11
+  }
+
   override def toString: String = value.toString + " " + color
 }
