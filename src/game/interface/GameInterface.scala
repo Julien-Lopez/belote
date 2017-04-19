@@ -1,10 +1,10 @@
-package interface
+package game.interface
 
 import game.{Card, Team}
 import game.Color
 import player.Player
 
-trait GameInterface {
+private[game] trait GameInterface {
   def dealing()
   def bets(p: Player)
   def betting(p: Player, bet: (Int, Color))

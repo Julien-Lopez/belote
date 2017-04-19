@@ -2,7 +2,7 @@ package player
 
 import game._
 
-class Human(override val name: String) extends Player
+sealed class Human(override val name: String) extends Player
 {
   override def bet(): (Int, Color) = Board.interface.readBet()
 

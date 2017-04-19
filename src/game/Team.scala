@@ -2,7 +2,7 @@ package game
 
 import player.Player
 
-class Team(p1: Player, p2: Player)
+sealed class Team private[game](p1: Player, p2: Player)
 {
   // The total score of the team
   var score = 0

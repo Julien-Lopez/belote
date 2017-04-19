@@ -1,20 +1,32 @@
-package interface
+package game.interface
 
 import java.text.ParseException
+import java.awt.Dimension
+import javax.swing.ImageIcon
 
+import scala.io.StdIn._
 import game._
 import player.Player
 
-import scala.io.StdIn._
+import scala.swing.{BoxPanel, Label, MainFrame, Orientation}
 
-object ConsoleInterface extends GameInterface {
+private[game] sealed class GraphicalInterface extends MainFrame with GameInterface {
+  title = "Belote"
+  preferredSize = new Dimension(742, 527)
+  val label = new Label {
+    icon = new ImageIcon("images/background.jpg")
+  }
+  contents = new BoxPanel(Orientation.Vertical) {
+    contents += label
+  }
+
   override def dealing(): Unit = Console.println("Dealing...")
   override def bets(p: Player): Unit =
   {
     Console println "[" + p + "] " + p.printCards
     Console println "[" + p + "] Your bet:"
   }
-  override def betting(p: Player, bet: (Int, Color)): Unit =
+  override def betting(p: Player, bet: (Int, game.Color)): Unit =
     Console.println(p + (if (bet._1 != 0) " bets " + bet._1 + " at " + bet._2 else " calls"))
   override def betError(msg: String): Unit = Console.println(msg)
   override def plays(p: Player): Unit =
@@ -35,7 +47,7 @@ object ConsoleInterface extends GameInterface {
     Console.println(t2 + ": " + t2.score)
   }
   override def wins(winners: Team, losers: Team): Unit =
-    Console.println(winners + " wins! Final score: " + winners.score + " / " + losers.score)
+    Console.println(winners + " wins! Final score: " + winners.points + " / " + losers.points)
 
   override def readBet(): (Int, Color) =
   {

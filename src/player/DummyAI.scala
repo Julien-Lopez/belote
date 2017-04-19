@@ -2,7 +2,7 @@ package player
 
 import game._
 
-class DummyAI(override val name: String) extends Player
+sealed class DummyAI(override val name: String) extends Player
 {
   override def bet(): (Int, Color) = {
     val bet = Array(DIAMOND, HEART, SPADE, CLUB).map(color =>

@@ -7,7 +7,6 @@ trait Player {
   val name: String
   var cards: List[Card] = List.empty
 
-  // TODO: These methods should not be accessible by anyone
   def newHand(newCards: List[Card]): Unit = cards = newCards
   def take(card: Card): Unit = cards = card :: cards
   def bet(): (Int, Color)

@@ -62,7 +62,7 @@ case object SPADE extends Color {}
 
 case object CLUB extends Color {}
 
-class Card(val value: Value, val color: Color) {
+sealed class Card private[game](val value: Value, val color: Color) {
   def <(other: Card, trump: Color): Boolean =
     color != trump && other.color == trump || (color == other.color && score(trump) < other.score(trump))
 

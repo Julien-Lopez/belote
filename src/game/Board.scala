@@ -1,7 +1,7 @@
 package game
 
 import interface._
-import player.{DummyAI, Player}
+import player.{DummyAI, Human, Player}
 
 import scala.util.Random
 
@@ -174,7 +174,7 @@ object Board {
   def main(args: Array[String]): Unit = {
     if (!isRunning) {
       isRunning = true
-      Board.game(new DummyAI("Julien"), new DummyAI("Bob"), new DummyAI("Steve"), new DummyAI("Michael"))
+      Board.game(new Human("Julien"), new DummyAI("Bob"), new DummyAI("Steve"), new DummyAI("Michael"))
     }
   }
 }
