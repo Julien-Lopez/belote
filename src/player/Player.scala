@@ -3,6 +3,8 @@ package player
 import game.Card
 import game.Color
 
+import scala.annotation.tailrec
+
 trait Player {
   val name: String
   var cards: List[Card] = List.empty
@@ -17,17 +19,15 @@ trait Player {
 
   private def printer(cards: List[Card]): String =
   {
-    var index = 0
-    def printer_(cards: List[Card]): String =
-    {
+    @tailrec
+    def printer(index: Int, res: String, cards: List[Card]): String =
       cards match
       {
         case Nil => ""
-        case List(c) => (index + 1) + ":" + c
-        case c :: rest => index += 1; index + ":" + c + ", " + printer_(rest)
+        case List(c) => res + index + ":" + c
+        case c :: rest => printer(index + 1, res + index + ":" + c + ", ", rest)
       }
-    }
-    printer_(cards)
+    printer(1, "", cards)
   }
   override def toString: String = name
 }
