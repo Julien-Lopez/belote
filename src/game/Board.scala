@@ -1,7 +1,8 @@
 package game
 
 import interface._
-import player.{DummyAI, Human, Player}
+import player.ai.Mordin
+import player.{Human, Player}
 
 import scala.util.Random
 
@@ -54,7 +55,7 @@ object Board {
   }
 
   def validMove(c: Card, p: Player): Boolean = {
-    val pIsLosing = team1.belongs(trickWinningPlayer) ^ team1.belongs(p)
+    val pIsLosing = areNotInSameTeam(trickWinningPlayer, p)
     val trumpColor = roundBet._1._2
     if (trickFirstCardColor == null) true
     else if (c.color != trickFirstCardColor && p.existCard(c => c.color == trickFirstCardColor)) false
@@ -68,6 +69,9 @@ object Board {
       && c.color != trumpColor && p.existCard(c => c.color == trumpColor)) false
     else true
   }
+
+  def areNotInSameTeam(p1: Player, p2: Player): Boolean = team1.belongs(p1) ^ team1.belongs(p2)
+  def areInSameTeam(p1: Player, p2: Player): Boolean = !areNotInSameTeam(p1, p2)
 
   private def game(p1: Player, p2: Player, p3: Player, p4: Player)
   {
@@ -174,7 +178,7 @@ object Board {
   def main(args: Array[String]): Unit = {
     if (!isRunning) {
       isRunning = true
-      Board.game(new Human("Julien"), new DummyAI("Bob"), new DummyAI("Steve"), new DummyAI("Michael"))
+      Board.game(new Human("Julien"), new Mordin("Bob"), new Mordin("Steve"), new Mordin("Michael"))
     }
   }
 }

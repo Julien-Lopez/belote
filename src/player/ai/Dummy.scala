@@ -1,8 +1,9 @@
-package player
+package player.ai
 
 import game._
+import player.Player
 
-sealed class DummyAI(override val name: String) extends Player
+sealed class Dummy(override val name: String) extends Player
 {
   override def bet(): (Int, Color) = {
     val bet = Array(DIAMOND, HEART, SPADE, CLUB).map(color =>
@@ -14,8 +15,7 @@ sealed class DummyAI(override val name: String) extends Player
     if (bet._1 < 80) (0, null)
     else if (Board.bets.isEmpty) bet
     else if (bet._1 <= Board.bets.head._1._1) (0, null)
-    else if (bet._2 == Board.bets.head._1._2
-      && Board.team1.belongs(this) ^ Board.team1.belongs(Board.bets.head._2)) (0, null)
+    else if (bet._2 == Board.bets.head._1._2 && Board.areNotInSameTeam(this, Board.bets.head._2)) (0, null)
     else bet
   }
 
