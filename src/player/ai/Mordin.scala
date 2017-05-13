@@ -25,9 +25,9 @@ sealed class Mordin(override val name: String) extends Player
     else playNotFirst(cards)
 
   private def playFirstAsBidder(cards: List[Card]): Card = {
-    val trumpPlayed = Board.cardsPlayed.count({case (c, _) => c.color == Board.roundBet._2})
+    val trumpPlayed = Board.cardsPlayed.count({case (c, _) => c.color == Board.roundBet._1._2})
     if (trumpPlayed == 0)
-      cards.find(c => c.color == Board.roundBet._2 && c.value == JACK) match {
+      cards.find(c => c.color == Board.roundBet._1._2 && c.value == JACK) match {
         case None => cards.minBy(c => c.score(Board.roundBet._1._2))
         case Some(c) => c
       }
